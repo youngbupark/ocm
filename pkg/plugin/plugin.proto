@@ -1,0 +1,221 @@
+syntax = "proto2";
+
+package open-cluster-management.io.ocm.plugin;
+
+import "google/protobuf/timestamp.proto";
+// import "k8s.io/apimachinery/pkg/runtime/generated.proto";
+
+option go_package = "open-cluster-management.io/ocm/pkg/plugin;plugin";
+
+// RolloutPluginService is the service for the rollout plugin.
+service RolloutPluginService {
+  // Initialize the plugin
+  rpc InitPlugin(InitPluginRequest) returns (InitPluginResponse);
+
+  // Begin the cluster rollout.
+  rpc BeginRollout(BeginRolloutRequest) returns (PluginResponse);
+  
+  // Progress the cluster rollout.
+  rpc ProgressRollout(ProgressRolloutRequest) returns (PluginResponse);
+  
+  // Validate the completion of the cluster rollout.
+  rpc ValidateRolloutCompletion(ValidateRolloutCompletionRequest) returns (PluginResponse);
+  
+  // Complete the cluster rollout.
+  rpc CompleteRollout(CompleteRolloutRequest) returns (PluginResponse);
+
+  // Begin the cluster rollback.
+  rpc BeginRollback(BeginRollbackRequest) returns (PluginResponse);
+  
+  // Progress the cluster rollback.
+  rpc ProgressRollback(ProgressRollbackRequest) returns (PluginResponse);
+  
+  // Validate the completion of the cluster rollback.
+  rpc ValidateRollbackCompletion(ValidateRollbackCompletionRequest) returns (PluginResponse);
+
+  // Complete the cluster rollback.
+  rpc CompleteRollback(CompleteRollbackRequest) returns (PluginResponse);
+
+  // Mutate the manifestwork resource before it is applied.
+  rpc MutateManifestWork(MutateManifestWorkRequest) returns (MutateManifestWorkResponse);
+}
+
+// InitPluginRequest is the request to initialize the plugin.
+message InitPluginRequest {
+  // ocm_version is the version of the OCM API.
+  optional string ocm_version = 1;
+}
+
+// InitPluginResponse is the response to initialize the plugin.
+message InitPluginResponse {
+  // name is the name of the plugin.
+  optional string name = 1;
+  // version is the version of the plugin.
+  optional string version = 2;
+  // description is the description of the plugin.
+  optional string description = 3;
+}
+
+// PluginError is the error response from the plugin.
+message PluginError {
+  // code is the error code.
+  required int32 code = 1;
+  // message is the error message.
+  required string message = 2;
+  // data is the error data.
+  optional map<string, string> data = 3;
+}
+
+// PluginResponse is the response from the plugin.
+message PluginResponse {
+  // message is the message of the response.
+  required string message = 1;
+  // status is the status of the response.
+  optional string status = 2;
+  // error is the error of the response.
+  optional PluginError error = 3;
+}
+
+// ClusterRolloutStatus is the status of the cluster rollout.
+message ClusterRolloutStatus {
+  // RolloutStatus is the status of the cluster rollout.
+  enum RolloutStatus {
+    // TO_APPLY is the status of the cluster rollout to apply.
+    TO_APPLY = 0;
+    // PROGRESSING is the status of the cluster rollout progressing.
+    PROGRESSING = 1;
+    // SUCCEEDED is the status of the cluster rollout succeeded.
+    SUCCEEDED = 2;
+    // FAILED is the status of the cluster rollout failed.
+    FAILED = 3;
+    // TIMEOUT is the status of the timed out cluster rollout.
+    TIMEOUT = 4;
+    // SKIP is the status of the cluster rollout skip.
+    SKIP = 5;
+  }
+  // name is the name of the cluster.
+  required string name = 1;
+  // status is the status of the cluster rollout.
+  required RolloutStatus status = 2;
+}
+
+// RolloutStatus is the status of the rollout.
+message RolloutStatus {
+  // existing is the existing clusters.
+  repeated ClusterRolloutStatus existing = 1;
+  // rollout is the clusters to rollout.
+  repeated ClusterRolloutStatus rollout = 2;
+  // timeout is the clusters to timeout.
+  repeated ClusterRolloutStatus timeout = 3;
+  // removed is the clusters to remove.
+  repeated ClusterRolloutStatus removed = 4;
+}
+
+// RolloutMetadata is the metadata of the rollout.
+message RolloutMetadata {
+  // mwrs_name is the name of the manifestwork resource set.
+  required string mwrs_name = 1;
+  // namespace is the namespace of the manifestwork resource set.
+  required string namespace = 2;
+  // placement_name is the name of the placement.
+  required string placement_name = 3;
+  // cluster_name is the name of the cluster.
+  optional string cluster_name = 4;
+}
+
+// ProgressRolloutRequest is the request to progress the rollout.
+message ProgressRolloutRequest {
+  // metadata is the metadata of the rollout.
+  required RolloutMetadata metadata = 1;
+  // rollouts is the status of the rollout.
+  required RolloutStatus rollouts = 3;
+}
+
+// ValidateRolloutCompletionRequest is the request to validate the completion of the rollout.
+message ValidateRolloutCompletionRequest {
+  // metadata is the metadata of the rollout.
+  required RolloutMetadata metadata = 1;
+  // rollouts is the status of the rollout.
+  required RolloutStatus rollouts = 6;
+}
+
+// CompleteRolloutRequest is the request to complete the rollout.
+message CompleteRolloutRequest {
+  // metadata is the metadata of the rollout.
+  required RolloutMetadata metadata = 1;
+  // rollouts is the status of the rollout.
+  required RolloutStatus rollouts = 3;
+}
+  
+// BeginRollbackRequest is the request to begin the rollback.
+message BeginRollbackRequest {
+  // metadata is the metadata of the rollback.
+  required RolloutMetadata metadata = 1;
+  // rollouts is the status of the rollback.
+  required RolloutStatus rollouts = 3;
+}
+
+// ProgressRollbackRequest is the request to progress the rollback.
+message ProgressRollbackRequest {
+  // metadata is the metadata of the rollback.
+  required RolloutMetadata metadata = 1;
+  // rollouts is the status of the rollback.
+  required RolloutStatus rollouts = 3;
+}
+
+// ValidateRollbackCompletionRequest is the request to validate the completion of the rollback.
+message ValidateRollbackCompletionRequest {
+  // metadata is the metadata of the rollback.
+  required RolloutMetadata metadata = 1;
+  // rollouts is the status of the rollback.
+  required RolloutStatus rollouts = 3;
+}
+
+// CompleteRollbackRequest is the request to complete the rollback.
+message CompleteRollbackRequest {
+  // metadata is the metadata of the rollback.
+  required RolloutMetadata metadata = 1;
+  // rollouts is the status of the rollback.
+  required RolloutStatus rollouts = 3;
+}
+
+// MutateManifestWorkRequest is the request to mutate the manifestwork resource before it is applied.
+message MutateManifestWorkRequest {
+  // metadata is the metadata of the manifestwork.
+  required RolloutMetadata metadata = 1;
+  // rollouts is the status of the manifestwork.
+  required RolloutStatus rollouts = 3;
+  // manifestwork is the unstructured manifestwork resource.
+  required RuntimeObject manifestwork = 4;
+}
+
+// MutateManifestWorkResponse is the response to mutate the manifestwork resource before it is applied.
+message MutateManifestWorkResponse {
+  // manifestwork is the mutated manifestwork resource.
+  optional RuntimeObject manifestwork = 1;
+
+  // error is the error of the response.
+  optional PluginError error = 2;
+}
+
+// TypeMeta is the type meta of the runtime object.
+message TypeMeta {
+  // +optional
+  optional string apiVersion = 1;
+  // +optional
+  optional string kind = 2;
+}
+
+// RuntimeObject is the runtime object.
+message RuntimeObject {
+  optional TypeMeta typeMeta = 1;
+
+  // Raw will hold the complete serialized object which couldn't be matched
+  // with a registered type. Most likely, nothing should be done with this
+  // except for passing it through the system.
+  optional bytes raw = 2;
+
+  // ContentType  is serialization method used to serialize 'Raw'.
+  // Unspecified means ContentTypeJSON.
+  optional string contentType = 4;
+}
