@@ -14,27 +14,17 @@ service RolloutPluginService {
 
   // Begin the cluster rollout.
   rpc BeginRollout(BeginRolloutRequest) returns (PluginResponse);
-  
   // Progress the cluster rollout.
   rpc ProgressRollout(ProgressRolloutRequest) returns (PluginResponse);
-  
   // Validate the completion of the cluster rollout.
-  rpc ValidateRolloutCompletion(ValidateRolloutCompletionRequest) returns (PluginResponse);
-  
-  // Complete the cluster rollout.
-  rpc CompleteRollout(CompleteRolloutRequest) returns (PluginResponse);
+  rpc ValidateRolloutCompletion(ValidateRolloutCompletionRequest) returns (ValidationResponse);
 
   // Begin the cluster rollback.
   rpc BeginRollback(BeginRollbackRequest) returns (PluginResponse);
-  
   // Progress the cluster rollback.
   rpc ProgressRollback(ProgressRollbackRequest) returns (PluginResponse);
-  
   // Validate the completion of the cluster rollback.
-  rpc ValidateRollbackCompletion(ValidateRollbackCompletionRequest) returns (PluginResponse);
-
-  // Complete the cluster rollback.
-  rpc CompleteRollback(CompleteRollbackRequest) returns (PluginResponse);
+  rpc ValidateRollbackCompletion(ValidateRollbackCompletionRequest) returns (ValidationResponse);
 
   // Mutate the manifestwork resource before it is applied.
   rpc MutateManifestWork(MutateManifestWorkRequest) returns (MutateManifestWorkResponse);
@@ -68,10 +58,32 @@ message PluginError {
 
 // PluginResponse is the response from the plugin.
 message PluginResponse {
+  enum Status {
+    UNSPECIFIED = 0;
+    OK = 1;
+    ERROR = 2;
+    TIMEOUT = 3;
+  }
   // message is the message of the response.
   required string message = 1;
   // status is the status of the response.
   optional string status = 2;
+  // error is the error of the response.
+  optional PluginError error = 3;
+}
+
+// PluginResponse is the response from the plugin.
+message ValidationResponse {
+  enum ValidationResult {
+    UNSPECIFIED = 0;
+    SUCCEEDED = 1;
+    FAILED = 2;
+    ERROR = 3;
+  }
+  // message is the message of the response.
+  required string message = 1;
+  // status is the status of the response.
+  optional ValidationResult status = 2;
   // error is the error of the response.
   optional PluginError error = 3;
 }
@@ -136,23 +148,15 @@ message ValidateRolloutCompletionRequest {
   // metadata is the metadata of the rollout.
   required RolloutMetadata metadata = 1;
   // rollouts is the status of the rollout.
-  required RolloutStatus rollouts = 6;
+  required RolloutStatus rollouts = 2;
 }
 
-// CompleteRolloutRequest is the request to complete the rollout.
-message CompleteRolloutRequest {
-  // metadata is the metadata of the rollout.
-  required RolloutMetadata metadata = 1;
-  // rollouts is the status of the rollout.
-  required RolloutStatus rollouts = 3;
-}
-  
 // BeginRollbackRequest is the request to begin the rollback.
 message BeginRollbackRequest {
   // metadata is the metadata of the rollback.
   required RolloutMetadata metadata = 1;
   // rollouts is the status of the rollback.
-  required RolloutStatus rollouts = 3;
+  required RolloutStatus rollouts = 2;
 }
 
 // ProgressRollbackRequest is the request to progress the rollback.
@@ -160,7 +164,7 @@ message ProgressRollbackRequest {
   // metadata is the metadata of the rollback.
   required RolloutMetadata metadata = 1;
   // rollouts is the status of the rollback.
-  required RolloutStatus rollouts = 3;
+  required RolloutStatus rollouts = 2;
 }
 
 // ValidateRollbackCompletionRequest is the request to validate the completion of the rollback.
@@ -168,15 +172,7 @@ message ValidateRollbackCompletionRequest {
   // metadata is the metadata of the rollback.
   required RolloutMetadata metadata = 1;
   // rollouts is the status of the rollback.
-  required RolloutStatus rollouts = 3;
-}
-
-// CompleteRollbackRequest is the request to complete the rollback.
-message CompleteRollbackRequest {
-  // metadata is the metadata of the rollback.
-  required RolloutMetadata metadata = 1;
-  // rollouts is the status of the rollback.
-  required RolloutStatus rollouts = 3;
+  required RolloutStatus rollouts = 2;
 }
 
 // MutateManifestWorkRequest is the request to mutate the manifestwork resource before it is applied.
@@ -184,16 +180,15 @@ message MutateManifestWorkRequest {
   // metadata is the metadata of the manifestwork.
   required RolloutMetadata metadata = 1;
   // rollouts is the status of the manifestwork.
-  required RolloutStatus rollouts = 3;
+  required RolloutStatus rollouts = 2;
   // manifestwork is the unstructured manifestwork resource.
-  required RuntimeObject manifestwork = 4;
+  required RuntimeObject manifestwork = 3;
 }
 
 // MutateManifestWorkResponse is the response to mutate the manifestwork resource before it is applied.
 message MutateManifestWorkResponse {
   // manifestwork is the mutated manifestwork resource.
   optional RuntimeObject manifestwork = 1;
-
   // error is the error of the response.
   optional PluginError error = 2;
 }
